@@ -9,9 +9,10 @@ export class Scene0 {
 
         /**GROUND*/
         this.ground = new THREE.Mesh(
-            new THREE.BoxGeometry(300, 1, 10),
+            new THREE.BoxGeometry(5, 0, 5),
             new THREE.MeshBasicMaterial({ color: "pink"})
         );
+        this.ground.position.y = -1;
         this.game.scene.add(this.ground);
     }
 
