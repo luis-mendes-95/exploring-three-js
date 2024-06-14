@@ -11,19 +11,34 @@ window.addEventListener('load', function() {
     /** CLASS GAME WILL CENTRALIZE EVERY GAME ELEMENTS INSIDE OF IT */
     class Game {
         constructor(width, height) {
-            /** THREE.JS SETUP */
+
+            /** THREE.JS SCENE SETUP */
             this.scene = new THREE.Scene();
+
+            /**CAMERA */
             this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+
+            /**POSITION */
+            this.camera.position.z = 3;
+            this.camera.position.y = 3;
+            this.camera.position.x = 0;
+
+            /**ROTATION */
+            this.camera.rotateX(-0.9);
+            this.camera.rotateY(0.0);
+            this.camera.rotateZ(0.0);
+
+
+
+            /**RENDERER */
             this.renderer = new THREE.WebGLRenderer();
             this.renderer.setSize(width, height);
-
-            /** Append renderer's canvas to the document body */
             document.body.appendChild(this.renderer.domElement);
 
-            this.camera.position.z = 5;
 
             /** PLAYER STATS */
             this.playerName = "";
+            this.currentStage = 0;
             this.playerPoints = 0;
             this.difficulty = "";
 
