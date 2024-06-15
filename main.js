@@ -1,5 +1,6 @@
 /** INDIVIDUAL SCENES */
 import { Scene0 } from './src/customClasses/scenes/scene0/scene0.js';
+import { OrbitControls } from 'three/examples/jsm/Addons.js';
 
 /** THREE.JS IMPORT */
 import * as THREE from 'three';
@@ -16,7 +17,19 @@ window.addEventListener('load', function() {
             this.scene = new THREE.Scene();
 
             /**CAMERA */
-            this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            this.camera = new THREE.PerspectiveCamera(
+                75, /**FIELD OF VIEW */
+                width / height, /**ASPECT RATIO */
+                0.1, /**NEAR */
+                100 /**FAR */
+            );
+
+            /**ORBIT CONTROLS */
+            this.orbit = new OrbitControls(this.camera, document.body);
+            this.orbit.update();
+
+            /**CLOCK */
+            this.clock = new THREE.Clock();
 
             /**POSITION */
             this.camera.position.z = 3;
@@ -27,7 +40,6 @@ window.addEventListener('load', function() {
             this.camera.rotateX(-0.9);
             this.camera.rotateY(0.0);
             this.camera.rotateZ(0.0);
-
 
 
             /**RENDERER */
