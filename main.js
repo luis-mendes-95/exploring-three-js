@@ -1,6 +1,6 @@
 /** INDIVIDUAL SCENES */
 import { Scene0 } from './src/customClasses/scenes/scene0/scene0.js';
-import { OrbitControls } from 'three/examples/jsm/Addons.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 /** THREE.JS IMPORT */
 import * as THREE from 'three';
@@ -16,37 +16,29 @@ window.addEventListener('load', function() {
             /** THREE.JS SCENE SETUP */
             this.scene = new THREE.Scene();
 
-            /**CAMERA */
+            /** CAMERA */
             this.camera = new THREE.PerspectiveCamera(
-                75, /**FIELD OF VIEW */
-                width / height, /**ASPECT RATIO */
-                0.1, /**NEAR */
-                100 /**FAR */
+                75, /** FIELD OF VIEW */
+                width / height, /** ASPECT RATIO */
+                0.1, /** NEAR */
+                100 /** FAR */
             );
 
-            /**ORBIT CONTROLS */
-            this.orbit = new OrbitControls(this.camera, document.body);
-            this.orbit.update();
+            /** ORBIT CONTROLS */
+            //this.orbit = new OrbitControls(this.camera, document.body);
+            //this.orbit.update();
 
-            /**CLOCK */
+            /** CLOCK */
             this.clock = new THREE.Clock();
 
-            /**POSITION */
-            this.camera.position.z = 3;
-            this.camera.position.y = 3;
-            this.camera.position.x = 0;
+            /** POSITION */
+            this.camera.position.set(0, 3, 3);
+            this.camera.rotation.set(-0.9, 0, 0);
 
-            /**ROTATION */
-            this.camera.rotateX(-0.9);
-            this.camera.rotateY(0.0);
-            this.camera.rotateZ(0.0);
-
-
-            /**RENDERER */
+            /** RENDERER */
             this.renderer = new THREE.WebGLRenderer();
             this.renderer.setSize(width, height);
             document.body.appendChild(this.renderer.domElement);
-
 
             /** PLAYER STATS */
             this.playerName = "";
