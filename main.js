@@ -127,14 +127,6 @@ window.addEventListener('load', function() {
         game.rayCaster.setFromCamera(game.input.mousePosition, game.camera);
         game.rayCaster.setFromCamera(game.input.touchPosition, game.camera);
         game.intersects = game.rayCaster.intersectObjects(game.scene.children, true);
-        game.intersects.forEach(intersect => {
-            if(game.input.touches.length > 0) {
-                intersect.object.material.color.set("blue");
-            } else {
-                intersect.object.material.color.set("pink");
-            }
-        }
-        )
         game.draw();
         requestAnimationFrame(animate);
     }

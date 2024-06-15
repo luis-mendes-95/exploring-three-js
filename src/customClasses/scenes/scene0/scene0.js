@@ -33,7 +33,7 @@ export class Scene0 {
         
         /**DIRECTIONAL*/
         this.directionalLight = new THREE.DirectionalLight("white", 1);
-        this.directionalLight.position.set(1, 3, 0);
+        this.directionalLight.position.set(4, 8, 0);
         this.directionalLight.castShadow = true;
         
         /**SPOT*/
@@ -133,7 +133,7 @@ export class Scene0 {
             new THREE.BoxGeometry(1, 1, 1),
             new THREE.MeshStandardMaterial({ color: 0x00ff00 }),
         );
-        this.cube.position.set(0.5, 1, 0.5);
+        this.cube.position.set(0.5, 2, 0.5);
         this.cube.castShadow = true;
         this.cube.receiveShadow = true;
 
@@ -156,6 +156,63 @@ export class Scene0 {
         this.sphere.position.set(-1, 0.5, 0);
         this.sphere.castShadow = true;
         this.sphere.receiveShadow = true;
+
+        this.complexShaderMaterial = new THREE.ShaderMaterial({
+            vertexShader: `
+                varying vec3 vNormal;
+                varying vec3 vViewPosition;
+        
+                void main() {
+                    vNormal = normalMatrix * normal;
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    vViewPosition = -mvPosition.xyz;
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                varying vec3 vNormal;
+                varying vec3 vViewPosition;
+        
+                uniform vec3 baseColor;
+        
+                void main() {
+                    vec3 ambientColor = vec3(0.2, 0.2, 0.2); // Cor ambiente
+                    vec3 lightColor = vec3(1.0, 1.0, 1.0);   // Cor da luz
+        
+                    vec3 lightDir = normalize(vec3(0.5, 0.5, 0.5)); // Direção da luz
+                    float NdotL = max(dot(normalize(vNormal), lightDir), 0.0); // Componente difusa
+        
+                    vec3 viewDir = normalize(vViewPosition);
+                    vec3 halfwayDir = normalize(lightDir + viewDir);
+        
+                    float specularStrength = 0.5; // Intensidade especular
+                    float shininess = 32.0;        // Brilho
+        
+                    float NdotH = max(dot(normalize(vNormal), halfwayDir), 0.0);
+                    float specular = pow(NdotH, shininess) * specularStrength; // Componente especular
+        
+                    vec3 diffuse = baseColor.rgb * lightColor * NdotL;
+                    vec3 specularComponent = specular * lightColor;
+        
+                    vec3 finalColor = ambientColor + diffuse + specularComponent;
+        
+                    gl_FragColor = vec4(finalColor, 1.0);
+                }
+            `,
+            uniforms: {
+                baseColor: { value: new THREE.Color(0xffff00) }
+            }
+        });
+        
+
+        /**SPHERE -> WITH SHADERS */
+        this.complexSphere = new THREE.Mesh(
+            new THREE.SphereGeometry(0.5, 64, 64),
+            this.complexShaderMaterial
+        );
+        this.complexSphere.position.set(1, 1, 1);
+        this.complexSphere.castShadow = true; // Permitir que a esfera projete sombras
+        this.complexSphere.receiveShadow = true; // Permitir que a esfera receba sombras
 
         /** HELPERS */
         this.axesHelper = new THREE.AxesHelper(2);
@@ -182,8 +239,10 @@ export class Scene0 {
         this.game.scene.add(this.ground);
         this.game.scene.add(this.spotLight);
         //this.game.scene.add(this.sLightHelper);
+        this.game.scene.add(this.dLightHelper);
         this.game.scene.fog = this.fog;
         this.game.scene.add(this.textureCube);
+        this.game.scene.add(this.complexSphere);
 
         // Debugging information to check GUI creation
         console.log('GUI created:', this.gui);
