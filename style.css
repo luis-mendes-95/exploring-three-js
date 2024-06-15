@@ -1,0 +1,33 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+body{
+  /*background-color: #87CEEB;*/
+  background-color: black;
+}
+
+.dg{
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 200px;
+  width: 100%;
+}
+
+div{
+  position: absolute;
+  top: 1;
+  right: 0;
+  height: 200px;
+  width: 100%;
+}
+
+
+
+.character, .background, .dialogue, .audio, .button, .logo, .akemi, .title, .buttons, .butterflies, .clouds, .dialogueBox, .namepanel, .difficultyPanel, .box, .ridden {
+  display: none;
+}
