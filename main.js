@@ -38,6 +38,7 @@ window.addEventListener('load', function() {
             /** RENDERER */
             this.renderer = new THREE.WebGLRenderer();
             this.renderer.setSize(width, height);
+            this.renderer.shadowMap.enabled = true;
             document.body.appendChild(this.renderer.domElement);
 
             /** PLAYER STATS */
