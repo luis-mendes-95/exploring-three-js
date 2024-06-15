@@ -1,7 +1,7 @@
-// src/customClasses/scenes/scene0/scene0.js
 import * as THREE from 'three';
 import * as dat from 'dat.gui';
-import { OrbitControls } from 'three/examples/jsm/Addons.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import cosmoBackground from '../../../assets/backgrounds/cosmo.jpg';
 
 export class Scene0 {
     constructor(game) {
@@ -12,13 +12,37 @@ export class Scene0 {
         /**CAMERA START CONFIG*/
         this.game.camera.position.set(0, 3, 3);
 
+        /**BACKGROUND*/
+        this.textureLoader = new THREE.TextureLoader();
+        this.cubeTextureLoader = new THREE.CubeTextureLoader();
+        const urls = [
+            cosmoBackground,
+            cosmoBackground,
+            cosmoBackground,
+            cosmoBackground,
+            cosmoBackground,
+            cosmoBackground
+        ];
+        const cubeTexture = this.cubeTextureLoader.load(urls, () => {
+            this.game.scene.background = cubeTexture;
+        });
+
         /**LIGHTNING */
-        this.ambientLight = new THREE.AmbientLight("white", 1);
+        /**AMBIENT*/
+        this.ambientLight = new THREE.AmbientLight("white", 0.05);
+        
+        /**DIRECTIONAL*/
         this.directionalLight = new THREE.DirectionalLight("white", 1);
         this.directionalLight.position.set(1, 3, 0);
         this.directionalLight.castShadow = true;
-        this.game.scene.add(this.ambientLight);
-        this.game.scene.add(this.directionalLight);
+        
+        /**SPOT*/
+        this.spotLight = new THREE.SpotLight("white", 7, 100, Math.PI / 4, 0.5, 2);
+        this.spotLight.position.set(0, 3, 0);
+        this.spotLight.castShadow = true;
+
+        /**FOG */
+        this.fog = new THREE.FogExp2("lightgray", 0.03);
 
         /** GUI */
         this.gui = new dat.GUI({ autoPlace: false });
@@ -28,7 +52,6 @@ export class Scene0 {
             sphereY: 0.5,
             sphereZ: 0,
 
-
             cubeColor: '#00ff00',
             cubeX: 0.5,
             cubeY: 1,
@@ -37,7 +60,11 @@ export class Scene0 {
             groundColor: '#ff00ff',
             wireframe: false,
             speed: 0.1,
-            OrbitControls: false
+            OrbitControls: false,
+
+            SpotLightX: 0,
+            SpotLightY: 3,
+            SpotLightZ: 0
         };
         document.body.appendChild(this.gui.domElement);
 
@@ -88,25 +115,45 @@ export class Scene0 {
         this.gui.add(this.options, 'cubeZ', -2, 2).name('Cube Z').onChange((value) => {
             this.cube.position.z = value;
         });
+        this.gui.add(this.options, 'SpotLightX', -20, 20).name('SpotLight X').onChange((value) => {
+            this.spotLight.position.x = value;
+            this.sLightHelper.update();
+        });
+        this.gui.add(this.options, 'SpotLightY', -20, 20).name('SpotLight Y').onChange((value) => {
+            this.spotLight.position.y = value;
+            this.sLightHelper.update();
+        });
+        this.gui.add(this.options, 'SpotLightZ', -20, 20).name('SpotLight Z').onChange((value) => {
+            this.spotLight.position.z = value;
+            this.sLightHelper.update();
+        });
 
         /** CUBE */
         this.cube = new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, 1),
-            new THREE.MeshStandardMaterial({ color: 0x00ff00 })
-          );
-          this.cube.position.set(0.5, 1, 0.5);
-          this.game.scene.add(this.cube);
-            this.cube.castShadow = true;
+            new THREE.MeshStandardMaterial({ color: 0x00ff00 }),
+        );
+        this.cube.position.set(0.5, 1, 0.5);
+        this.cube.castShadow = true;
+        this.cube.receiveShadow = true;
+
+        /**TEXTURED CUBE */
+        this.texturedCubeGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        this.textureCubeMaterial = new THREE.MeshBasicMaterial({
+            //color: "gray",
+            map: this.textureLoader.load(cosmoBackground) });
+        this.textureCube = new THREE.Mesh(this.texturedCubeGeometry, this.textureCubeMaterial);
+        this.textureCube.position.set(-1, 1, 1);
+        this.textureCube.castShadow = true;
+        this.textureCube.receiveShadow = true;
+
 
         /** SPHERE -> MESH STANDARD MATERIAL -> RECEIVES LIGHT*/
         this.sphere = new THREE.Mesh(
             new THREE.SphereGeometry(0.5, 256, 256),
-            new THREE.MeshStandardMaterial({ 
-                color: 0xffff00
-            })
+            new THREE.MeshStandardMaterial({ color: 0xffff00 })
         );
         this.sphere.position.set(-1, 0.5, 0);
-        this.game.scene.add(this.sphere);
         this.sphere.castShadow = true;
         this.sphere.receiveShadow = true;
 
@@ -114,7 +161,8 @@ export class Scene0 {
         this.axesHelper = new THREE.AxesHelper(2);
         this.gridHelper = new THREE.GridHelper(10, 10);
         this.dLightHelper = new THREE.DirectionalLightHelper(this.directionalLight, 1);
-
+        this.dLightShadowHelper = new THREE.CameraHelper(this.directionalLight.shadow.camera);
+        this.sLightHelper = new THREE.SpotLightHelper(this.spotLight);
 
         /** GROUND */
         this.ground = new THREE.Mesh(
@@ -127,10 +175,15 @@ export class Scene0 {
         this.ground.position.set(0, 0, 0);
         this.ground.receiveShadow = true;
 
+        /**ADDING ELEMENTS INTO SCENE */
+        //this.game.scene.add(this.ambientLight);
+        this.game.scene.add(this.cube);
+        this.game.scene.add(this.sphere);
         this.game.scene.add(this.ground);
-        this.game.scene.add(this.axesHelper);
-        this.game.scene.add(this.gridHelper);
-        this.game.scene.add(this.dLightHelper);
+        this.game.scene.add(this.spotLight);
+        //this.game.scene.add(this.sLightHelper);
+        this.game.scene.fog = this.fog;
+        this.game.scene.add(this.textureCube);
 
         // Debugging information to check GUI creation
         console.log('GUI created:', this.gui);
