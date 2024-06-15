@@ -5,6 +5,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 /** THREE.JS IMPORT */
 import * as THREE from 'three';
 import { Scene1 } from './src/customClasses/scenes/scene1/scene1.js';
+import { InputHandler } from './src/engine/input/input.js';
 
 /** AFTER EVERYTHING LOADS, IT WILL RUN */
 window.addEventListener('load', function() {
@@ -12,6 +13,8 @@ window.addEventListener('load', function() {
     /** CLASS GAME WILL CENTRALIZE EVERY GAME ELEMENTS INSIDE OF IT */
     class Game {
         constructor(width, height) {
+
+
 
             /** THREE.JS SCENE SETUP */
             this.scene = new THREE.Scene();
@@ -40,6 +43,13 @@ window.addEventListener('load', function() {
             this.renderer.setSize(width, height);
             this.renderer.shadowMap.enabled = true;
             document.body.appendChild(this.renderer.domElement);
+
+            /**RAY CASTER */
+            this.rayCaster = new THREE.Raycaster();
+
+
+            /**INPUT HANDLER */
+            this.input = new InputHandler(this);
 
             /** PLAYER STATS */
             this.playerName = "";
@@ -114,6 +124,17 @@ window.addEventListener('load', function() {
         const deltaTime = timeStamp - lastTime;
         lastTime = timeStamp;
         game.update(deltaTime);
+        game.rayCaster.setFromCamera(game.input.mousePosition, game.camera);
+        game.rayCaster.setFromCamera(game.input.touchPosition, game.camera);
+        game.intersects = game.rayCaster.intersectObjects(game.scene.children, true);
+        game.intersects.forEach(intersect => {
+            if(game.input.touches.length > 0) {
+                intersect.object.material.color.set("blue");
+            } else {
+                intersect.object.material.color.set("pink");
+            }
+        }
+        )
         game.draw();
         requestAnimationFrame(animate);
     }
