@@ -51,6 +51,7 @@ export class Scene0 {
             
                 /**AMBIENT*/
                 this.ambientLight = new THREE.AmbientLight("white", 0.05);
+                this.game.scene.add(this.ambientLight);
                 
                 /**DIRECTIONAL*/
                 this.directionalLight = new THREE.DirectionalLight("white", 1);
@@ -61,12 +62,14 @@ export class Scene0 {
                 this.spotLight = new THREE.SpotLight("white", 7, 100, Math.PI / 4, 0.5, 2);
                 this.spotLight.position.set(0, 3, 0);
                 this.spotLight.castShadow = true;
+                this.game.scene.add(this.spotLight);
 
             })();
 
             /**FOG */
             (()=>{
                 this.fog = new THREE.FogExp2("lightgray", 0.03);
+                this.game.scene.fog = this.fog;
             })();
 
             /** GUI | SETUP AND ADDING CONTROLS*/
@@ -174,6 +177,7 @@ export class Scene0 {
                     );
                     this.ground.position.set(0, 0, 0);
                     this.ground.receiveShadow = true;
+                    this.game.scene.add(this.ground);
                 })();
 
                 /** CUBE */
@@ -185,6 +189,7 @@ export class Scene0 {
                     this.cube.position.set(0.5, 2, 0.5);
                     this.cube.castShadow = true;
                     this.cube.receiveShadow = true;
+                    this.game.scene.add(this.cube);
                 })();
 
                 /**TEXTURED CUBE */
@@ -197,6 +202,7 @@ export class Scene0 {
                     this.textureCube.position.set(-1, 1, 1);
                     this.textureCube.castShadow = true;
                     this.textureCube.receiveShadow = true;
+                    this.game.scene.add(this.textureCube);
                 })();
 
                 /** SPHERE -> MESH STANDARD MATERIAL -> RECEIVES LIGHT*/
@@ -209,11 +215,7 @@ export class Scene0 {
                     this.sphere.castShadow = true;
                     this.sphere.receiveShadow = true;
             
-                    this.complexShaderMaterial = new THREE.ShaderMaterial({
-                        uniforms: {
-                            baseColor: { value: new THREE.Color(0xffff00) }
-                        }
-                    });
+                    this.game.scene.add(this.sphere);
                 })();
                 
                 /**SPHERE -> WITH SHADERS */
@@ -226,7 +228,7 @@ export class Scene0 {
                     });
                     this.sphereWithShaders = new THREE.Mesh(sphereWithShadersGeometry, sphereWithShadersMaterial);
                     this.sphereWithShaders.position.set(-5, 10, 10);
-
+                    this.game.scene.add(this.sphereWithShaders);
 
 
 
@@ -241,9 +243,10 @@ export class Scene0 {
                     (()=>{
                         const meganUrl = new URL('../../../assets/characters/megan/Megan.glb', import.meta.url);
                         this.glTFLoader.load(meganUrl.href, (gltf) => {
-                            const model = gltf.scene;
-                            this.game.scene.add(model);
-                            model.position.set(0, 0, 0);
+                            this.megan = gltf.scene;
+                            this.megan.position.set(0, 0, 0);
+                            //model.scale.set(0.01, 0.01, 0.01);
+                            this.game.scene.add(this.megan);
                             
                         }, undefined, (error) => {console.error(error)});
                     })();
@@ -259,6 +262,9 @@ export class Scene0 {
                 this.dLightHelper = new THREE.DirectionalLightHelper(this.directionalLight, 1);
                 this.dLightShadowHelper = new THREE.CameraHelper(this.directionalLight.shadow.camera);
                 this.sLightHelper = new THREE.SpotLightHelper(this.spotLight);
+
+                this.game.scene.add(this.sLightHelper);
+                this.game.scene.add(this.dLightHelper);
             })();
         })();
 
@@ -266,36 +272,6 @@ export class Scene0 {
 
     update(deltaTime) {
         this.bounceUpAndDown();
-    }
-
-    draw() {
-        
-        /**ENVIRONMENT -> LIGHTNING / FOG */
-        (()=>{
-            /**LIGHTNING */
-            this.game.scene.add(this.ambientLight);
-            this.game.scene.add(this.spotLight);
-
-            /**FOG*/
-            this.game.scene.fog = this.fog;
-        })();
-
-        /**ELEMENTS IN SCENE -> CUBES / SPHERES / GROUNDS / CHARACTERS*/
-        (()=>{
-            this.game.scene.add(this.cube);
-            this.game.scene.add(this.sphere);
-            this.game.scene.add(this.ground);
-            this.game.scene.add(this.textureCube);
-            this.game.scene.add(this.sphereWithShaders);
-            this.game.scene.add(this.megan);
-        })();
-
-        /**HELPERS */
-        (()=>{
-            this.game.scene.add(this.sLightHelper);
-            this.game.scene.add(this.dLightHelper);
-        })();
-
     }
 
     /**TO USE IN ELEMENTS IN SCENE -> ANIMATION BOUNCING */
