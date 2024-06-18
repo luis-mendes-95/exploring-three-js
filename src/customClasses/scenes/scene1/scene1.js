@@ -20,6 +20,7 @@ export class Scene1 {
 
                 /**LOADERS */
                 this.glTFLoader = new GLTFLoader();
+                this.mixer;
 
 
             })();
@@ -57,6 +58,7 @@ export class Scene1 {
                 this.directionalLight = new THREE.DirectionalLight("white", 1);
                 this.directionalLight.position.set(4, 8, 0);
                 this.directionalLight.castShadow = true;
+                this.game.scene.add(this.directionalLight);
                 
                 /**SPOT*/
                 this.spotLight = new THREE.SpotLight("white", 7, 100, Math.PI / 4, 0.5, 2);
@@ -78,44 +80,22 @@ export class Scene1 {
                 /**INSTANCE AND OPTIONS SETUP */
                 this.gui = new dat.GUI({ autoPlace: false });
                 this.options = {
-                    sphereColor: '#ffea00',
-                    sphereX: -1,
-                    sphereY: 0.5,
-                    sphereZ: 0,
-        
-                    cubeColor: '#00ff00',
-                    cubeX: 0.5,
-                    cubeY: 1,
-                    cubeZ: 0.5,
+
         
                     groundColor: '#ff00ff',
                     wireframe: false,
                     speed: 0.1,
                     OrbitControls: false,
         
-                    SpotLightX: 0,
-                    SpotLightY: 3,
-                    SpotLightZ: 0
                 };
 
                 document.body.appendChild(this.gui.domElement);
 
                 /** GUI CONTROLS ADDING */
                 (()=>{
-                    this.gui.addColor(this.options, 'sphereColor').name('Sphere Color').onChange((color) => {
-                        this.sphere.material.color.set(color);
-                    });
-                    this.gui.addColor(this.options, 'cubeColor').name('Cube Color').onChange((color) => {
-                        this.cube.material.color.set(color);
-                    });
+                   
                     this.gui.addColor(this.options, 'groundColor').name('Ground Color').onChange((color) => {
                         this.ground.material.color.set(color);
-                    });
-                    this.gui.add(this.options, 'wireframe').name('Wireframe').onChange((wireframe) => {
-                        this.sphere.material.wireframe = wireframe;
-                    });
-                    this.gui.add(this.options, 'speed', 0.01, 0.05).name('Speed').onChange((value) => {
-                        this.speed = value;
                     });
                     this.gui.add(this.options, 'OrbitControls').name('OrbitControls').onChange((value) => {
                         if (value) {
@@ -130,36 +110,7 @@ export class Scene1 {
                             this.controls.dispose();
                         }
                     });
-                    this.gui.add(this.options, 'sphereX', -2, 2).name('Sphere X').onChange((value) => {
-                        this.sphere.position.x = value;
-                    });
-                    this.gui.add(this.options, 'sphereY', -2, 2).name('Sphere Y').onChange((value) => {
-                        this.sphere.position.y = value;
-                    });
-                    this.gui.add(this.options, 'sphereZ', -2, 2).name('Sphere Z').onChange((value) => {
-                        this.sphere.position.z = value;
-                    });
-                    this.gui.add(this.options, 'cubeX', -2, 2).name('Cube X').onChange((value) => {
-                        this.cube.position.x = value;
-                    });
-                    this.gui.add(this.options, 'cubeY', -2, 2).name('Cube Y').onChange((value) => {
-                        this.cube.position.y = value;
-                    });
-                    this.gui.add(this.options, 'cubeZ', -2, 2).name('Cube Z').onChange((value) => {
-                        this.cube.position.z = value;
-                    });
-                    this.gui.add(this.options, 'SpotLightX', -20, 20).name('SpotLight X').onChange((value) => {
-                        this.spotLight.position.x = value;
-                        this.sLightHelper.update();
-                    });
-                    this.gui.add(this.options, 'SpotLightY', -20, 20).name('SpotLight Y').onChange((value) => {
-                        this.spotLight.position.y = value;
-                        this.sLightHelper.update();
-                    });
-                    this.gui.add(this.options, 'SpotLightZ', -20, 20).name('SpotLight Z').onChange((value) => {
-                        this.spotLight.position.z = value;
-                        this.sLightHelper.update();
-                    });
+                  
                 })();
             })();
 
@@ -169,9 +120,9 @@ export class Scene1 {
                 /** GROUND */
                 (()=>{
                     this.ground = new THREE.Mesh(
-                        new THREE.BoxGeometry(5, 0.1, 5),
+                        new THREE.BoxGeometry(50, 0.1, 50),
                         new THREE.MeshStandardMaterial({ 
-                            color: "pink",
+                            color: "#aaaaaaaa",
                             side: THREE.DoubleSide
                         })
                     );
@@ -180,25 +131,33 @@ export class Scene1 {
                     this.game.scene.add(this.ground);
                 })();
 
-
-
-
-
-
                 /**CHARACTERS*/
                 (()=>{
 
-                    /**MEGAN*/
+                    /**MEGAN -> GLTF*/
                     (()=>{
                         const meganUrl = new URL('../../../assets/characters/megan/Megan.glb', import.meta.url);
                         this.glTFLoader.load(meganUrl.href, (gltf) => {
                             this.megan = gltf.scene;
+                            this.megan.traverse((child) => {
+                                if (child.isMesh) {
+                                    child.castShadow = true;
+                                    //child.receiveShadow = true;
+                                }
+                            });
                             this.megan.position.set(0, 0.045, 0);
                             this.game.scene.add(this.megan);
-
+                            this.mixer = new THREE.AnimationMixer(this.megan);
+                            this.meganAnimations = gltf.animations;
+                            this.meganIdle = THREE.AnimationClip.findByName(this.meganAnimations, 'IDLE');
+                            this.animateAction = this.mixer.clipAction(this.meganIdle);
+                            this.animateAction.play();
+                        
                             
                         }, undefined, (error) => {console.error(error)});
                     })();
+
+
 
                 })();
 
@@ -220,7 +179,9 @@ export class Scene1 {
     }
 
     update(deltaTime) {
-
+        if (this.mixer) {
+            this.mixer.update(deltaTime);
+        }
     }
 
     /**TO USE IN ELEMENTS IN SCENE -> ANIMATION BOUNCING */

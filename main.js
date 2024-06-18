@@ -100,7 +100,7 @@ window.addEventListener('load', function() {
 
         update(deltaTime) {
             /** UPDATING SCENE */
-            this.currentScene.update(deltaTime);
+            this.currentScene.update(this.clock.getDelta());
         }
 
         draw() {
