@@ -4,8 +4,8 @@ import { Scene1 } from './src/customClasses/scenes/scene1/scene1.js';
 
 /** THREE.JS IMPORT */
 import * as THREE from 'three';
-
 import { InputHandler } from './src/engine/input/input.js';
+
 
 /** AFTER EVERYTHING LOADS, IT WILL RUN */
 window.addEventListener('load', function() {
@@ -24,14 +24,8 @@ window.addEventListener('load', function() {
 
                 /** CAMERA */
                 (()=>{
-                    this.camera = new THREE.PerspectiveCamera(
-                        75, /** FIELD OF VIEW */
-                        width / height, /** ASPECT RATIO */
-                        0.1, /** NEAR */
-                        100 /** FAR */
-                    );
-                    this.camera.position.set(0, 3, 3);
-                    this.camera.rotation.set(-0.9, 0, 0);
+                    this.camera = new THREE.PerspectiveCamera();
+
                 })();
 
                 /** CLOCK */

@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 import * as dat from 'dat.gui';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import cosmoBackground from '../../../assets/backgrounds/cosmo.jpg';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { Character } from '../../../engine/character/character.js';
 
 export class Scene1 {
     constructor(game) {
@@ -16,35 +15,16 @@ export class Scene1 {
                 /**GLOBAL MEASURES */
                 this.speed = 0.01;
 
-                /**LOADERS */
-                this.glTFLoader = new GLTFLoader();
-                this.mixer = null;
-                this.meganAnimations = null;
-                this.meganCurrentState = 'IDLE';
-                this.animateAction = null;
-            })();
-
-            /**CAMERA SETUP*/
-            (() => {
-                this.game.camera.position.set(0.5, 1.6, 1.5);
-                this.game.camera.rotation.set(-0.2, 0, 0);
             })();
 
             /**BACKGROUND RENDERING*/
             (() => {
+
                 this.textureLoader = new THREE.TextureLoader();
                 this.cubeTextureLoader = new THREE.CubeTextureLoader();
-                const urls = [
-                    cosmoBackground,
-                    cosmoBackground,
-                    cosmoBackground,
-                    cosmoBackground,
-                    cosmoBackground,
-                    cosmoBackground
-                ];
-                const cubeTexture = this.cubeTextureLoader.load(urls, () => {
-                    this.game.scene.background = cubeTexture;
-                });
+                const urls = [ cosmoBackground, cosmoBackground, cosmoBackground, cosmoBackground, cosmoBackground, cosmoBackground ];
+                const cubeTexture = this.cubeTextureLoader.load(urls, () => { this.game.scene.background = cubeTexture; });
+
             })();
 
             /**LIGHTNING */
@@ -89,7 +69,7 @@ export class Scene1 {
                     cameraPositionZ: 0,
                 };
 
-                document.body.appendChild(this.gui.domElement);
+                //document.body.appendChild(this.gui.domElement);
 
                 /** GUI CONTROLS ADDING */
                 (() => {
@@ -135,7 +115,7 @@ export class Scene1 {
                 /** GROUND */
                 (() => {
                     this.ground = new THREE.Mesh(
-                        new THREE.BoxGeometry(50, 0.1, 50),
+                        new THREE.BoxGeometry(10, 0.05, 10),
                         new THREE.MeshStandardMaterial({
                             color: "#aaaaaaaa",
                             side: THREE.DoubleSide
@@ -146,36 +126,12 @@ export class Scene1 {
                     this.game.scene.add(this.ground);
                 })();
 
-                /**CHARACTERS*/
-                (() => {
-                    /**MEGAN -> GLTF*/
-                    (() => {
-                        const meganUrl = new URL('../../../assets/characters/megan/Megan.glb', import.meta.url);
-                        this.glTFLoader.load(meganUrl.href, (gltf) => {
-                            this.megan = gltf.scene;
-                            this.megan.traverse((child) => {
-                                if (child.isMesh) {
-                                    child.castShadow = true;
-                                }
-                            });
-                            this.megan.position.set(0, 0.045, 0);
-                            this.megan.rotation.set(0, Math.PI, 0);
-                            this.game.scene.add(this.megan);
-
-                            this.mixer = new THREE.AnimationMixer(this.megan);
-                            this.meganAnimations = gltf.animations;
-
-                            // Inicializando a animação IDLE
-                            const idleAnimation = THREE.AnimationClip.findByName(this.meganAnimations, 'IDLE');
-                            if (idleAnimation) {
-                                this.animateAction = this.mixer.clipAction(idleAnimation);
-                                this.animateAction.play();
-                            } else {
-                                console.error('IDLE animation not found');
-                            }
-                        }, undefined, (error) => { console.error(error) });
-                    })();
+                /**CHARACTERS */
+                (()=>{
+                    /**MEGAN*/
+                    this.megan = new Character(this.game, '../../assets/characters/megan/Megan.glb', 5);
                 })();
+
             })();
 
             /** HELPERS -> AXES / GRID / LIGHTNING*/
@@ -189,15 +145,15 @@ export class Scene1 {
                 //this.game.scene.add(this.sLightHelper);
                 //this.game.scene.add(this.dLightHelper);
             })();
+            
         })();
     }
 
     update(deltaTime) {
-        if (this.mixer) {
-            this.mixer.update(deltaTime);
-        }
 
-        this.handleAnimations();
+        this.megan.update(deltaTime);
+        
+
     }
 
     /**TO USE IN ELEMENTS IN SCENE -> ANIMATION BOUNCING */
@@ -208,51 +164,6 @@ export class Scene1 {
         }
     }
 
-    handleAnimations() {
-        if (!this.meganAnimations) return;
-    
-        const walkAnimation = THREE.AnimationClip.findByName(this.meganAnimations, 'WALKING');
-        const idleAnimation = THREE.AnimationClip.findByName(this.meganAnimations, 'IDLE');
-    
-        if (this.game.input.keys.includes('w') || this.game.input.keys.includes('W') && !this.game.input.keys.includes('Shift')) {
-            if (this.meganCurrentState !== 'WALKING' && walkAnimation) {
-                const walkAction = this.mixer.clipAction(walkAnimation);
-                const currentAction = this.mixer.clipAction(THREE.AnimationClip.findByName(this.meganAnimations, this.meganCurrentState));
-    
-                if (currentAction && walkAction) {
-                    currentAction.fadeOut(0.5);
-                    walkAction.reset().fadeIn(0.5).play();
-                    this.meganCurrentState = 'WALKING';
-                }
-            }
-            this.megan.position.z -= this.speed;
-            this.game.camera.position.z -= this.speed;
-        } else {
-            if (this.meganCurrentState !== 'IDLE' && idleAnimation) {
-                const idleAction = this.mixer.clipAction(idleAnimation);
-                const currentAction = this.mixer.clipAction(THREE.AnimationClip.findByName(this.meganAnimations, this.meganCurrentState));
-    
-                if (currentAction && idleAction) {
-                    currentAction.fadeOut(0.5);
-                    idleAction.reset().fadeIn(0.5).play();
-                    this.meganCurrentState = 'IDLE';
-                }
-            }
-        }
 
-        if(this.game.input.keys.includes('d') || this.game.input.keys.includes('D')) {
-            this.megan.rotation.y -= this.speed;
-        }
-
-        if(this.game.input.keys.includes('a') || this.game.input.keys.includes('A') && this.megan.rotation.y < Math.PI / 2) {
-            this.megan.rotation.y += this.speed * 2;
-        }
-
-        if(this.game.input.keys.includes('s') || this.game.input.keys.includes('S')) {
-            this.megan.position.z += this.speed;
-            this.game.camera.position.z += this.speed * 2;
-        }
-
-    }
     
 }
